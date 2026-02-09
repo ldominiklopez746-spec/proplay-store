@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRO PLAY STORE</title>
+<style>
+:root {
+    --bg: #0a0a0c;
+    --card-bg: #16161a;
+    --neon: #00f2ff;
+    --gold: #d4af37;
+    --text: #ffffff;
+    --input-bg: #1f1f23;
+    --danger: #ff4d4d;
+    --success: #25d366;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+header {
+    width: 100%;
+    padding: 15px 0;
+    background: #000;
+    border-bottom: 2px solid var(--neon);
+    text-align: center;
+    cursor: pointer;
+}
+header h1 { margin:0; font-size:1.5rem; letter-spacing:3px; line-height:1; }
+header span.nic { font-size:0.6rem; letter-spacing:5px; display:block; margin-top:5px; color:#aaa; }
+.container { width:95%; max-width:600px; margin:30px 0; }
+.glass-card {
+    background: var(--card-bg);
+    padding:25px;
+    border-radius:15px;
+    border:1px solid #333;
+    margin-bottom:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+.rules-box {
+    background: rgba(0, 242, 255, 0.05);
+    border: 1px dashed var(--neon);
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    margin-top: 15px;
+}
+input, select { width:100%; padding:12px; margin:5px 0 10px 0; background:var(--input-bg); border:1px solid #444; color:white; border-radius:8px; box-sizing:border-box; outline:none; }
+.btn { width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; text-transform:uppercase; }
+.btn-neon { background: var(--neon); color: #000; }
+.btn-del { background: var(--danger); color:white; padding:5px; font-size:0.65rem; margin-top:5px; }
+.status-badge { padding:8px; border-radius:4px; font-weight:bold; display:block; text-align:center; margin-bottom:10px; border:1px solid #444; }
+.shop-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px; }
+.shop-item { background:#1f1f23; padding:15px; border-radius:10px; border:1px solid #333; text-align:center; opacity:0.4; pointer-events:none; }
+.shop-active { opacity:1; pointer-events:auto; border-color:var(--neon); }
+.admin-table { width:100%; border-collapse:collapse; font-size:0.75rem; }
+.admin-table td { padding:10px; border-bottom:1px solid #222; }
+.hidden { display:none; }
+</style>
+</head>
+<body>
+
+<header onclick="goToAdmin()">
+    <h1>PRO PLAY <span style="color:var(--neon)">STORE</span></h1>
+    <span class="nic">NICARAGUA</span>
+</header>
+
+<div class="container">
+
+<section id="admin-login" class="glass-card hidden">
+    <h2>Admin Access</h2>
+    <input type="email" id="adm-u" placeholder="Correo de Admin">
+    <input type="password" id="adm-p" placeholder="Contraseña">
+    <button class="btn btn-neon" id="btn-login-admin">Entrar</button>
+</section>
+
+<section id="client-login" class="glass-card">
+    <h2>Cliente</h2>
+    <input type="text" id="cli-name" placeholder="Nombre completo">
+    <input type="email" id="cli-email" placeholder="Correo electrónico">
+    <input type="text" id="cli-id" placeholder="ID de 6 dígitos">
+    <input type="text" id="cli-cvv" placeholder="CVV de 3 dígitos">
+    <button class="btn btn-neon" onclick="clientLogin()">Entrar</button>
+</section>
+
+<section id="client-profile" class="hidden">
+    <div class="glass-card">
+        <h3 id="hi-user" style="margin-bottom:5px;">Bienvenido</h3>
+        <small id="p-card-type" style="color:var(--neon); font-weight:bold; display:block; margin-bottom:15px;"></small>
+        <div id="p-status" class="status-badge">---</div>
+        <div style="display:flex; justify-content:space-around; text-align:center;">
+            <div><small>Bono</small><h2 style="color:var(--neon)" id="p-credit">C$0</h2></div>
+            <div><small style="color:var(--danger)">Deuda</small><h2 style="color:var(--danger)" id="p-debt">C$0</h2></div>
+        </div>
+        
+        <div class="rules-box" id="p-rules">
+            <b style="color:var(--neon)">REGLAS DE CRÉDITO COMERCIAL:</b><br>
+            <span id="rule-text">Cargando reglas...</span>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <h3>Tienda</h3>
+        <div id="shop-display" class="shop-grid"></div>
+    </div>
+    <button class="btn" style="background:#222; color:white;" onclick="location.reload()">Cerrar Sesión</button>
+</section>
+
+<section id="admin-panel" class="hidden">
+    <div class="glass-card">
+        <h2>Clientes Registrados</h2>
+        <input type="text" id="search-client" placeholder="🔍 Buscar por nombre o ID..." onkeyup="filterClients()" style="border-color:var(--neon)">
+        <table class="admin-table"><tbody id="adm-list"></tbody></table>
+        <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+        <h3>Agregar Nuevo Cliente</h3>
+        <input type="text" id="new-name" placeholder="Nombres y Apellidos completos">
+        <input type="email" id="new-email" placeholder="Correo electrónico">
+        <input type="text" id="new-wa" placeholder="WhatsApp">
+        <select id="new-card">
+            <option value="">Tipo de tarjeta</option>
+            <option value="BLACK CARD">BLACK CARD</option>
+            <option value="GOLD CARD">GOLD CARD</option>
+            <option value="PLATINUM CEO">PLATINUM CEO</option>
+        </select>
+        <button class="btn btn-neon" onclick="addClient()" style="margin-top:10px;">Registrar Cliente</button>
+    </div>
+
+    <div class="glass-card">
+        <h2>Registro de Ventas y Plazos</h2>
+        <div id="sales-log" style="font-size:0.75rem;"></div>
+    </div>
+
+    <div class="glass-card">
+        <h2>Gestionar Tienda</h2>
+        <input type="text" id="new-game" placeholder="Nombre Juego">
+        <input type="text" id="new-item" placeholder="Producto">
+        <input type="number" id="new-price" placeholder="Precio C$">
+        <button class="btn btn-neon" onclick="addProduct()">Agregar</button>
+        <div id="admin-shop-list" style="margin-top:15px;"></div>
+    </div>
+
+    <button class="btn btn-neon" onclick="logoutAdmin()">Cerrar Sesión Admin</button>
+</section>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCFSGRk-3t0J0ZUnVPJoOEHC_cPkVuOy_c",
+    authDomain: "appdedomi.firebaseapp.com",
+    projectId: "appdedomi",
+    storageBucket: "appdedomi.firebasestorage.app",
+    messagingSenderId: "401460614256",
+    appId: "1:401460614256:web:7ffcd2583cb8640160299a"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const cloudDB = getFirestore(app);
+  const auth = getAuth(app);
+
+  window.db = [];
+  window.store = [];
+  window.sales = [];
+
+  window.save = async function() {
+      try {
+          await setDoc(doc(cloudDB, "datos", "tienda_v14"), {
+              db: window.db,
+              store: window.store,
+              sales: window.sales
+          });
+      } catch (e) { console.error("Error guardando:", e); }
+  };
+
+  async function loadInitialData() {
+      const docSnap = await getDoc(doc(cloudDB, "datos", "tienda_v14"));
+      if (docSnap.exists()) {
+          const cloudData = docSnap.data();
+          window.db = cloudData.db || [];
+          window.store = cloudData.store || [];
+          window.sales = cloudData.sales || [];
+      }
+  }
+
+  // Lógica de Login Admin Protegida
+  document.getElementById('btn-login-admin').addEventListener('click', async () => {
+      const email = document.getElementById('adm-u').value;
+      const pass = document.getElementById('adm-p').value;
+      try {
+          await signInWithEmailAndPassword(auth, email, pass);
+          document.getElementById('admin-login').classList.add('hidden');
+          document.getElementById('admin-panel').classList.remove('hidden');
+          renderAdmin();
+      } catch (e) { alert("Acceso denegado: Credenciales incorrectas."); }
+  });
+
+  window.logoutAdmin = async function() {
+      await signOut(auth);
+      location.reload();
+  };
+
+  loadInitialData();
+</script>
+
+<script>
+let cur = null;
+const fmt = new Intl.NumberFormat('es-NI', { style: 'currency', currency: 'NIO' });
+
+function goToAdmin() {
+    document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'));
+    document.getElementById('admin-login').classList.remove('hidden');
+}
+
+function clientLogin(){
+    const email = document.getElementById('cli-email').value.trim().toLowerCase();
+    const id = document.getElementById('cli-id').value.trim();
+    const cvv = document.getElementById('cli-cvv').value.trim();
+    cur = db.find(u=>u.email===email && u.id===id && u.cvv===cvv);
+    if(cur){ renderClient(); } else { alert("Datos incorrectos"); }
+}
+
+function renderClient(){
+    document.getElementById('client-login').classList.add('hidden');
+    document.getElementById('client-profile').classList.remove('hidden');
+    document.getElementById('hi-user').innerText = "Hola, "+cur.user;
+    document.getElementById('p-card-type').innerText = "TARJETA: " + cur.cardType;
+    document.getElementById('p-credit').innerText = fmt.format(cur.credit);
+    document.getElementById('p-debt').innerText = fmt.format(cur.debt);
+    const st = document.getElementById('p-status');
+    st.innerText = cur.status;
+    st.style.color = cur.status === 'ACTIVO' ? 'var(--success)' : (cur.status === 'PENDIENTE' ? 'var(--gold)' : 'white');
+    const ruleTxt = document.getElementById('rule-text');
+    ruleTxt.innerHTML = cur.cardType.includes("PLATINUM") ? 
+        "• Plazo total: 20 días.<br>• PAGO OBLIGATORIO: Día 10.<br>• Pago final: Día 20." : 
+        "• Plazo total: 15 días.<br>• PAGO OBLIGATORIO: Día 7.<br>• Pago final: Día 14 o 15.";
+    const shopDiv = document.getElementById('shop-display');
+    shopDiv.innerHTML="";
+    store.forEach(p=>{
+        const active = cur.status === 'ACTIVO' ? 'shop-active' : '';
+        shopDiv.innerHTML+=`<div class="shop-item ${active}"><small>${p.game}</small><br><b>${p.name}</b><br>${fmt.format(p.price)}<br><button onclick="buy('${p.name}',${p.price})" class="btn btn-neon" style="padding:5px;font-size:0.7rem;margin-top:5px;">Comprar</button></div>`;
+    });
+}
+
+function filterClients() {
+    const val = document.getElementById('search-client').value.toLowerCase();
+    const rows = document.getElementById('adm-list').getElementsByTagName('tr');
+    for (let row of rows) { row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none"; }
+}
+
+function renderAdmin(){
+    const list = document.getElementById('adm-list');
+    list.innerHTML="";
+    db.forEach(u=>{
+        list.innerHTML+=`<tr><td><b>${u.user}</b><br><span style="color:var(--neon)">WA: ${u.wa}</span><br>ID: ${u.id} | CVV: ${u.cvv}<br><span style="color:var(--gold); font-size:0.7rem;">${u.cardType}</span><br>Estado: <b>${u.status}</b> | Deuda: <b style="color:var(--danger)">${fmt.format(u.debt)}</b></td><td><button onclick="editClient('${u.id}')" class="btn btn-neon" style="padding:5px; font-size:0.6rem;">GESTIONAR</button><button onclick="deleteClient('${u.id}')" class="btn btn-del">ELIMINAR</button></td></tr>`;
+    });
+    const sLog = document.getElementById('sales-log');
+    sLog.innerHTML="";
+    sales.forEach((s,idx)=>{
+        sLog.innerHTML+=`<div style="border-bottom:1px solid #333;padding:10px;"><span><b>Cliente:</b> ${s.user}</span><br><span><b>Item:</b> ${s.item} | ${fmt.format(s.price)}</span><br><span style="color:var(--neon)">ID: ${s.playerId} | Nick: ${s.nick}</span><br><small style="color:var(--gold)">Vencimiento: ${s.deadline}</small><button onclick="deleteSale(${idx})" style="color:red;background:none;border:none;float:right;">X</button></div>`;
+    });
+    const sList = document.getElementById('admin-shop-list');
+    sList.innerHTML="";
+    store.forEach((p,idx)=>{ sList.innerHTML+=`<div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span>${p.game}: ${p.name}</span><button onclick="delProduct(${idx})" style="color:red;background:none;border:none;">X</button></div>`; });
+}
+
+function addClient(){
+    const name=document.getElementById('new-name').value.trim();
+    const email=document.getElementById('new-email').value.trim().toLowerCase();
+    const wa=document.getElementById('new-wa').value.trim();
+    const type=document.getElementById('new-card').value;
+    if(!name || !email || !wa || !type) return alert("Complete todos los campos.");
+    const id=Math.floor(100000+Math.random()*900000).toString();
+    const cvv=Math.floor(100+Math.random()*900).toString();
+    db.push({id:id, cvv:cvv, user:name, email:email, wa:wa, cardType:type, credit:0, debt:0, status:'PENDIENTE'});
+    save(); renderAdmin();
+    alert(`Cliente registrado:\nID: ${id}\nCVV: ${cvv}`);
+}
+
+function editClient(id){
+    const i=db.findIndex(u=>u.id===id);
+    db[i].credit=parseFloat(prompt("Saldo Bono:", db[i].credit))||0;
+    db[i].debt=parseFloat(prompt("Deuda:", db[i].debt))||0;
+    db[i].wa=prompt("WA del Cliente:", db[i].wa);
+    let nS = prompt("Estado (1: ACTIVO, 2: DESACTIVADO, 3: PENDIENTE):");
+    if(nS==="1") db[i].status="ACTIVO"; if(nS==="2") db[i].status="DESACTIVADO"; if(nS==="3") db[i].status="PENDIENTE";
+    save(); renderAdmin();
+}
+
+function deleteClient(id){ if(confirm("¿Eliminar?")) { db=db.filter(u=>u.id!==id); save(); renderAdmin(); } }
+function deleteSale(idx){ sales.splice(idx,1); save(); renderAdmin(); }
+function addProduct(){
+    const g=document.getElementById('new-game').value.trim();
+    const it=document.getElementById('new-item').value.trim();
+    const p=parseFloat(document.getElementById('new-price').value);
+    if(!g || !it || !p) return alert("Complete campos.");
+    store.push({game:g,name:it,price:p}); save(); renderAdmin();
+}
+function delProduct(idx){ store.splice(idx,1); save(); renderAdmin(); }
+
+function buy(name,price){
+    if(cur.status !== 'ACTIVO') return alert("Cuenta no activa.");
+    if(cur.credit<price) return alert("Saldo insuficiente.");
+    let fId = prompt("ID de Jugador (Free Fire):");
+    let fNick = prompt("Nick en el juego:");
+    if(!fId || !fNick) return alert("Datos requeridos.");
+    let dias = cur.cardType.includes("PLATINUM") ? 20 : 15;
+    let fecha = new Date(); fecha.setDate(fecha.getDate() + dias);
+    cur.credit-=price; cur.debt+=price;
+    sales.push({user:cur.user, wa:cur.wa, item:name, price:price, playerId:fId, nick:fNick, deadline:fecha.toLocaleDateString('es-NI')});
+    const i=db.findIndex(u=>u.id===cur.id); db[i]=cur; save(); renderClient();
+    window.open(`https://wa.me/50589266338?text=Pedido: ${name} por ${fmt.format(price)}.%0AID: ${fId}%0ANick: ${fNick}`, '_blank');
+}
+</script>
+</body>
+  </html>
+  
